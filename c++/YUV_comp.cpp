@@ -15,7 +15,7 @@ using namespace std;
 typedef unsigned char BYTE;
 
 FILE *f_in, *f_out;
-int fsize = WIDTH*HEIGHT, fnum = 10;
+int fsize = WIDTH*HEIGHT, fnum = 100;
 int uvsize = fsize / 4;  //yuv 4:2:0
 int onesize = fsize + uvsize*2;
 int dataLen = onesize * fnum;
@@ -472,6 +472,8 @@ void Pre_ref(BYTE data[], BYTE refdata[], int x, int y, int max_ran, BYTE resid[
 
 void IPre_ref(BYTE data[], BYTE refdata[], int x, int y, BYTE sum[], int mv_x, int mv_y){
 	BYTE pred[16];
+	if(mv_x > 100) mv_x -= 256;
+	if(mv_y > 100) mv_y -= 256;
 	for(int ry = 0;ry < 4;++ry){
 		for(int rx = 0;rx < 4;++rx){
 			pred[ry*4+rx] = refdata[(y*4+ry+mv_y)*WIDTH+(x*4+rx+mv_x)];
@@ -522,6 +524,8 @@ void IPre_ref_uv(BYTE data[], BYTE refdata[], int x, int y, BYTE sum[], int mv_x
 			}
 		}
 	}
+	if(mv_x > 100) mv_x -= 256;
+	if(mv_y > 100) mv_y -= 256;
 	for(int ry = 0;ry < 2;++ry){
 		for(int rx = 0;rx < 2;++rx){
 			pred[ry*2+rx] = refexp[(y*4+ry+mv_y)*WIDTH+(x*4+rx+mv_x)];
@@ -835,7 +839,7 @@ void YUV_compress(char file[], int mode, int QP){
 				else{
 					if(f != 0){
 						int mv_x, mv_y;
-						Pre_ref(&bdata[y*ncol*16+x*16], &data[onesize*(f-1)], x, y, 0, &resid[0], mv_x, mv_y);
+						Pre_ref(&bdata[y*ncol*16+x*16], &data[onesize*(f-1)], x, y, 15, &resid[0], mv_x, mv_y);
 						Pre_ref_uv(&udata[y*ncol*4+x*4], &data[onesize*(f-1)+fsize], x, y, &resid[16], mv_x, mv_y);
 						Pre_ref_uv(&vdata[y*ncol*4+x*4], &data[onesize*(f-1)+fsize+uvsize], x, y, &resid[20], mv_x, mv_y);
 						output[osize++] = (char)mv_x;
@@ -991,7 +995,7 @@ int main(){
 	char filename1[30] = "AKIYO_352x288_10.yuv";
 	char filename2[30] = "AKIYO_352x288_10_cp.yuv";
 	//char filename2[30] = "MOBILE_352x288_10.yuv";
-	YUV_compress(filename1, 4, 4);
+	YUV_compress(filename1, 3, 4);
 	YUV_decompress(filename2);
 
 	return 0;
